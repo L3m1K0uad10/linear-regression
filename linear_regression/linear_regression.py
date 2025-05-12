@@ -6,6 +6,8 @@ import numpy as np
 y = a x + b
 y = a x + a x + ... + a x + b
      1 1   2 2         n n
+TODO: finish the computation of the intercept b for the 
+    multiple linear regression case
 """
 
 class LinearRegression:
@@ -76,10 +78,10 @@ class LinearRegression:
         print(self.__sum_X_2) """
 
 
-    def _compute_intercept(self):
+    def _compute_intercept(self, x):
         if self._cols > 2:
             # it is a multiple linear regression
-            self.__b = 1 
+            self.__b = ((1 / self._rows) * self.__sum_Y[0])
         else:
             # it is a simple linear regression
             self.__b = ((self.__sum_Y[0] * self.__sum_X2[0]) - (self.__sum_X[0] * self.__sum_XY[0])) / ((self._rows * self.__sum_X2[0]) - self.__sum_X_2[0])
@@ -89,19 +91,25 @@ class LinearRegression:
             a = ((self._rows * self.__sum_XY[i]) - (self.__sum_X[i] * self.__sum_Y[0])) / ((self._rows * self.__sum_X2[i]) - self.__sum_X_2[i])
             self.__a[i] = a
 
-    def predict(self, y):
+    def predict(self, x:np.array)->float:
         """
-        y: dependent variable
-        """  
-        self._compute_slope()
-        self._compute_intercept()
-        print(self.__a)
-        print(self.__b)
-
+        x np.array: independent(s) variable(s)
+        """ 
+        try:
+            print(x.shape)
+            if x.shape == (1, self._cols - 1):
+                self._compute_slope()
+                self._compute_intercept(x)
+                print(self.__a)
+                print(self.__b)
+            else:
+                raise TypeError("parameter error: unexpected shape, unmatched shape")
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
 
 l = LinearRegression(np.array([[3, 2, 2], [8, 10, 1]]), 2)
-l.predict(12)
+l.predict(np.array([[3, 2]]))
 
 """ data = np.array([[3, 8],
                  [9, 6],

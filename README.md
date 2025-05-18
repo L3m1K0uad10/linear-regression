@@ -45,5 +45,3 @@ After training the model on all but one data point and testing on the last row:
 - Pandas
 - scikit-learn
 
-### 📁 Project Structure
-

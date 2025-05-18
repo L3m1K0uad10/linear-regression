@@ -18,7 +18,9 @@ class LinearRegression:
         self.__sum_Y = 0 
         self.__sum_X2 = np.zeros((self._cols - 1, )) # x^2
         self.__sum_XiXj = np.zeros((self._cols - 1, self._cols - 1))
-        self.__sum_XY = np.zeros((self._cols - 1, ))  
+        self.__sum_XY = np.zeros((self._cols - 1, ))
+
+        self.__coefficients = 0  
 
         self._compute_summations()
 
@@ -100,12 +102,10 @@ class LinearRegression:
         # solving for [a1, a2,..., an]
         coefficients, residuals, rank, s = np.linalg.lstsq(left_side_equations, right_side_equations, rcond=None)
         
-        return coefficients
+        self.__coefficients = coefficients
     
     def linear_model(self):
-        coefficients = self._solve_equations()
-
-        return coefficients
+        return self.__coefficients
 
     def predict(self, x:np.array)->float:
         """
@@ -114,11 +114,11 @@ class LinearRegression:
         """ 
         try:
             if x.shape == (self._cols - 1, ):
-                coefficients = self._solve_equations()
+                self._solve_equations()
                 sum_ = 0
-                slope = coefficients[self._cols - 1]
+                slope = self.__coefficients[self._cols - 1]
                 for i in range(self._cols - 1):
-                    sum_ += coefficients[i] * x[i]
+                    sum_ += self.__coefficients[i] * x[i]
                 result = sum_ + slope
 
                 return result

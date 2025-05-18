@@ -1,39 +1,49 @@
-# Practice on Life Expectancy (WHO)
+# Real Estate Price Prediction (Taiwan)
 
-The WHO statistics on life expectancy dataset is a comprehensive dataset compiled by the World Health Organization and the United Nations. It tracks factors that affect life expectancy. The dataset contains 2938 rows and 22 columns, including country, year, developing status, adult mortality, life expectancy, infant deaths, alcohol consumption per capita, country’s expenditure on health, immunization coverage, BMI, deaths under five years old, deaths due to HIV/AIDS, GDP, population, body condition, income information, and education.
+This project is based on a real estate valuation dataset collected from the city of Taipei, Taiwan. The goal is to predict the **house price per unit area** based on various features such as proximity to the MRT station, the number of convenience stores nearby, and more.
 
+The dataset contains **414 instances** and **7 attributes**, including the target variable (house price per unit area).
 
-### Project aspiration
+### 🔍 Project Aspiration
 
-Build from scratch a functional machine learning regression linear regression algorithm which will accurately predict a particular data.
+Build a **linear regression model from scratch** using only NumPy and compare its performance with **scikit-learn's LinearRegression** to validate correctness.
 
+### 📊 Dataset Information
 
-### data from KumarRajarshi - KAGGLE
+- Source: [Real estate valuation data set – UCI ML Repository](https://archive.ics.uci.edu/ml/datasets/Real+estate+valuation+data+set)
+- Format: CSV
+- Number of Instances: 414
+- Features:
+  - `X1 transaction date`
+  - `X2 house age`
+  - `X3 distance to the nearest MRT station`
+  - `X4 number of convenience stores`
+  - `X5 latitude`
+  - `X6 longitude`
+  - `Y house price of unit area` (target)
 
-Statistical Analysis on factors influencing Life Expectancy
+### ⚙️ Implementation Details
 
-1. Number of Instances: 2938 
+- Implemented a custom `LinearRegression` class that:
+  - Computes weights using the **normal equation**.
+  - Supports prediction for new instances.
+- Used **StandardScaler** from `sklearn.preprocessing` to normalize input features.
+- Compared predictions with `sklearn.linear_model.LinearRegression`.
 
-2. Attribute Information:
-- Country,
-- Year,
-- Status,
-- Life expectancy ,
-- Adult Mortality,
-- infant deaths,
-- Alcohol,
-- percentage expenditure,
-- Hepatitis B,Measles , 
-- BMI ,
-- under-five deaths ,
-- Polio,
-- Total expenditure,
-- Diphtheria , 
-- HIV/AIDS,GDP,
-- Population, 
-- thinness  1-19 years, 
-- thinness 5-9 years,
-- Income composition of resources,Schooling
+### ✅ Results
 
+After training the model on all but one data point and testing on the last row:
 
-from: [Life Expectancy (WHO)](https://www.kaggle.com/datasets/kumarajarshi/life-expectancy-who?resource=download)
+<pre> ```text Custom LinearRegression Prediction: 53.73984570083941 Scikit-learn LinearRegression Prediction: 53.739845700839425 Actual Price: 63.9 ``` </pre>
+
+> The result of the custom implementation is **almost identical** to that of scikit-learn, validating the correctness of the manual model.
+
+### 🛠️ Requirements
+
+- Python 3.7+
+- NumPy
+- Pandas
+- scikit-learn
+
+### 📁 Project Structure
+

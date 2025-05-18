@@ -2,28 +2,6 @@ import numpy as np
 
 
 
-"""  
-y = a x + b
-y = a x + a x + ... + a x + b
-     1 1   2 2         n n
-
-∑y= a1∑x1 + a2∑x2 + a3∑x3 + a4∑x4 + nb
-
-∑x1y= a1∑x1^2 + a2∑x1x2 + a3∑x1x3 + a4∑x1x4 + b∑x1
-∑x2y= a1∑x1x2 + a2∑x2^2 + a3∑x2x3 + a4∑x2x4 + b∑x2
-∑x3y= a1∑x1x3 + a2∑x2x3 + a3∑x3^2 + a4∑x3x4 + b∑x3
-∑x4y= a1∑x1x4 + a2∑x2x4 + a3∑x3x4 + a4∑x4^2 + b∑x4
-
-b = Y' - a1X1' - a2X2'
-Y' is mean of Y
-X1 is mean of X1
-X2 is mean of X2
-TODO: - now solve the equations with numpy linear algebra
-        returns a1, a2, a3, a4, b coefficients
-        [a1, a2, a3, a4, b] ≈ [1.0, 2.0, 0.5, 0.0, 3.0]
-      - composed the final regression equation
-"""
-
 class LinearRegression:
     """  
     data (np.array): complete data along with the dependent variable
@@ -36,17 +14,11 @@ class LinearRegression:
         self._index = index
         self._rows, self._cols = data.shape
 
-        self.__b = 0 # intercept
-        self.__a = np.zeros((self._cols - 1, 1)) # minus 1 because of one col represents the dependent variable
-
         self.__sum_X = np.zeros((self._cols - 1, )) 
         self.__sum_Y = 0 
         self.__sum_X2 = np.zeros((self._cols - 1, )) # x^2
         self.__sum_XiXj = np.zeros((self._cols - 1, self._cols - 1))
         self.__sum_XY = np.zeros((self._cols - 1, ))  
-
-        self.__sum_X_2 = np.zeros((self._cols, 1)) #- (X)^2
-
 
         self._compute_summations()
 
@@ -83,25 +55,7 @@ class LinearRegression:
                 sum_ = np.sum(XiXj) 
                 self.__sum_XiXj[i][j - (i+1)] = sum_
 
-    """ def _compute_intercept(self):
-        if self._cols > 2:
-            # it is a multiple linear regression
-            self.__b = ((1 / self._rows) * self.__sum_Y[0])
-            second_terms = 0
-            for i, a in enumerate(self.__a):
-                second_terms -= a * (1 / self._rows) * self.__sum_X[i]
-            self.__b += second_terms
-        else:
-            # it is a simple linear regression
-            self.__b = ((self.__sum_Y[0] * self.__sum_X2[0]) - (self.__sum_X[0] * self.__sum_XY[0])) / ((self._rows * self.__sum_X2[0]) - self.__sum_X_2[0])
-
-    def _compute_slope(self):
-        # ∑x1y= a1∑x1^2 + a2∑x1x2 + a3∑x1x3 + a4∑x1x4 + b∑x1
-        for i in range(self._cols - 1):
-            a = ((self._rows * self.__sum_XY[i]) - (self.__sum_X[i] * self.__sum_Y[0])) / ((self._rows * self.__sum_X2[i]) - self.__sum_X_2[i])
-            self.__a[i] = a """
-
-    def _equations(self):
+    def _solve_equations(self):
         """ 
         ∑y= a1∑x1 + a2∑x2 + a3∑x3 + a4∑x4 + nb
 
@@ -118,9 +72,11 @@ class LinearRegression:
                     |   ∑x1x4  ∑x2x4  ∑x3x4  ∑x4^2  ∑x4  |
 
         """
-        equations = np.zeros((self._cols, self._cols))
+        left_side_equations = np.zeros((self._cols, self._cols))
+        right_side_equations = np.zeros((self._cols, ))
         
-        equations[0] = np.append(self.__sum_X, self._rows)
+        left_side_equations[0] = np.append(self.__sum_X, self._rows)
+        right_side_equations[0] = self.__sum_Y[0]
         
         # rearrangement: shift the arrays to the end
         k = 1 # track the number of time of each shift to the right
@@ -137,47 +93,81 @@ class LinearRegression:
         symmetric_matrix = self.__sum_XiXj + self.__sum_XiXj.T - np.diag(self.__sum_X2)
         
         for i in range(self._cols - 1):
-            equations[i + 1] = np.append(symmetric_matrix[i], self.__sum_X[i])
-        print(equations)
+            left_side_equations[i + 1] = np.append(symmetric_matrix[i], self.__sum_X[i])
+            right_side_equations[i + 1] = self.__sum_XY[i]
+        
+       
+        # solving for [a1, a2,..., an]
+        coefficients, residuals, rank, s = np.linalg.lstsq(left_side_equations, right_side_equations, rcond=None)
+        
+        return coefficients
+    
+    def linear_model(self):
+        coefficients = self._solve_equations()
+
+        return coefficients
 
     def predict(self, x:np.array)->float:
         """
         x np.array: independent(s) variable(s)
+        considering that x array is ordered as it should
         """ 
         try:
-            if x.shape == (1, self._cols - 1):
-                self._equations()
-                """ self._compute_slope()
-                self._compute_intercept()
-                #print(self.__a)
-                #print(self.__b) """
+            if x.shape == (self._cols - 1, ):
+                coefficients = self._solve_equations()
+                sum_ = 0
+                slope = coefficients[self._cols - 1]
+                for i in range(self._cols - 1):
+                    sum_ += coefficients[i] * x[i]
+                result = sum_ + slope
+
+                return result
             else:
                 raise TypeError("parameter error: unexpected shape, unmatched shape")
         except Exception as e:
             print(f"An error occurred: {e}")
 
 
-""" l = LinearRegression(np.array([[3, 2, 2], [8, 10, 1]]), 2)
-l.predict(np.array([[3, 2]])) """
+if "__main__" == __name__:
+    """
+    # TEST ONEP: SUCCESS
+    data = np.array([
+        [140, 60, 22],
+        [155, 62, 25],
+        [159, 67, 24],
+        [179, 70, 20],
+        [192, 71, 15],
+        [200, 72, 14],
+        [212, 75, 14],
+        [215, 78, 11]
+    ])
+    l = LinearRegression(data, 0)
+    l.predict(np.array([3, 2]))
+    # should get
+    # b = -6.867
+    # a1 = 3.148
+    # a2 = -1.656
+    """
 
-""" data = np.array([[3, 8],
-                 [9, 6],
-                 [5, 4],
-                 [3, 2]])
-l = LinearRegression(data, 1)
-l.predict(12) """
+    # TEST TWO: SUCCESS
+    data = np.array([
+        [5, 40],
+        [7, 120],
+        [12, 180],
+        [16, 210],
+        [20, 240]
+    ])
 
-data = np.array([[10, 1, 2, 3, 4], 
-                 [8, 2, 1, 0, 3],
-                 [9, 0, 3, 1, 2]])
+    l = LinearRegression(data, 1)
+    summary = l.linear_model()
+    print(summary)
+    result = l.predict(np.array([5]))
+    print(result)
+    # should get
+    # b = 11.506
+    # a = 12.208
 
-l = LinearRegression(data, 0)
-l.predict(np.array([[3, 2, 0, 1]]))
-# should get
-# b = -6.867
-# a1 = 3.148
-# a2 = -1.656
-    
+
 """ 
 [[X0],
  [X1],
